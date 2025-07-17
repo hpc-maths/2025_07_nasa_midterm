@@ -11,8 +11,8 @@ resources:
   - videos/**
 highlight-style: github
 footer: Modelling Summer Visit 2025 - NASA &nbsp;&nbsp; <img width="5%" src="figures/by-sa.png"/> &nbsp;&nbsp; Midterm presentation - July 21st 2025
-
-
+ 
+ 
 ---
 
 ##  Burgers equation - sinus problem
