@@ -1,1 +1,1 @@
-https://seriesl.github.io/quarto_example/
+https://hpc-maths.github.io/2025_07_nasa_midterm/
