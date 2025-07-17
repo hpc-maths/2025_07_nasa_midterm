@@ -1,0 +1,9 @@
+.quarto
+.DS_Store
+talk_files
+talk.html
+__pycache__
+/.quarto/
+talk_NASA_midterm_files/
+talk_NASA_midterm.html
+_freeze
