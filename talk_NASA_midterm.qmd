@@ -76,10 +76,10 @@ Decomposition of the solution on a wavelet basis [Daubechies, '88], [Mallat, '89
 
 **Projection operator**
 
-**Prediction operator** at order $2 \gamma+1$
+**Prediction operator** at order $2 s +1$
 
 $$
-{\hat f}_{\ell+1,2 k}={f}_{\ell, k}+\sum_{\sigma=1}^\gamma \psi_\sigma\left({f}_{\ell, k+\sigma}-{f}_{\ell, k-\sigma}\right)
+{\hat f}_{\ell+1,2 k}={f}_{\ell, k}+\sum_{\sigma=1}^s \psi_\sigma\left({f}_{\ell, k+\sigma}-{f}_{\ell, k-\sigma}\right)
 $$
 
 ::::: {style="text-align: left"}
@@ -96,7 +96,7 @@ $$
 
 Let $f \in W^{\nu, \infty}$ (neigh. of $C_{\ell, k}$ ), then
 $$
-\left|{\mathrm{d}}_{\ell, k}\right| \lesssim 2^{-\ell \min (\nu, 2 \gamma+1)}|f|_{W^{\min (\nu, 2 \gamma+1), \infty}}
+\left|{\mathrm{d}}_{\ell, k}\right| \lesssim 2^{-\ell \min (\nu, 2 s +1)}|f|_{W^{\min (\nu, 2 s +1), \infty}}
 $$
 
 ::::
@@ -179,6 +179,58 @@ $$
 
 # Numerical Analysis 
 
+## Linear scalar transport equation
+
+In this work, we are concerned with the numerical solution of the Cauchy problem associated with the linear scalar conservation law
+
+$$
+\partial_t u(t, x)+V \partial_x u(t, x)=0, \quad(t, x) \in \mathbb{R}^{+} \times \mathbb{R}
+$$
+
+where $V$ is the transport velocity, taken $V>0$ without loss of generality.
+we consider 1 d problems. The extension to $2\mathrm{~d}$ / $3\mathrm{~d}$ problems is straightforward and usually done by tensorization [Bellotti2022] and yields analogous conclusions.
+
+The discrete volumes are
+$$
+C_{\ell, k}:=\left[2^{-\ell} k, 2^{-\ell}(k+1)\right], \quad k \in \{ 0,2^{\ell}-1 \},
+$$
+for any $\ell \in \{ \underline{\ell}, \bar{\ell} \}$. The measure of each cell at level $\ell$ is $\Delta x_{\ell}:=2^{-\ell}$ and we shall indicate $\Delta x:=\Delta x_{\bar{\ell}}$. The cell centers are $x_{\ell, k}:=$ $2^{-\ell}(k+1 / 2)$. Finally, we shall indicate $\Delta \ell:=\bar{\ell}-\ell$, hence $\Delta x_{\ell}=2^{\Delta \ell} \Delta x$.
+
+
+## Finite Volume scheme
+
+Finite Volume scheme at the finest level of resolution $\bar{\ell}$ for any cell of indices $\bar{k} \in \{ 0,2^{\bar{\ell}}-1 \}$. Explicit schemes read:
+
+$$
+\mathrm{v}_{\bar{\ell}, \bar{k}}^{n+1}=\mathrm{v}_{\bar{\ell}, \bar{k}}^n-\frac{\Delta t}{\Delta x}\left(\Phi\left(\mathrm{v}_{\bar{\ell}, \bar{k}+1 / 2}^n\right)-\Phi\left(\mathrm{v}_{\bar{\ell}, \bar{k}-1 / 2}^n\right)\right)
+$$
+
+where we utilize the same linear numerical flux for the left and the right flux (conservativity)
+$$
+\Phi\left(\mathbf{v}_{\bar{\ell}, \bar{k}-1 / 2}\right):=V \sum_{\alpha=\underline{\alpha}}^{\bar{\alpha}} \phi_\alpha \mathbf{v}_{\bar{\ell}, \bar{k}+\alpha}, \quad \Phi\left(\mathbf{v}_{\bar{\ell}, \bar{k}+1 / 2}\right):=V \sum_{\alpha=\underline{\alpha}}^{\bar{\alpha}} \phi_\alpha v_{\bar{\ell}, \bar{k}+1+\alpha}
+$$
+
+## How to include MRA I
+
+
+We introduce the reconstruction operator $\hat{s}$ instead of $s$ on the cells $\left(\bar{\ell}, 2^{\Delta \ell} k+\delta\right)$ for any $\delta \in \mathbb{Z}$ at the finest level
+
+- $\hat{s}=s$ : exact local flux reconstruction [Cohen et al. 2003].
+- $\hat{s}=0$ but $s>0$, direct evaluation or naive evaluation [Hovhannisyan et al 2010].
+
+
+:::: {.fragment}
+
+$$
+\mathbf{w}_{\bar{\ell}, \bar{k}}^{n+1}=\mathbf{w}_{\bar{\ell}, \bar{k}}^n-\frac{\Delta t}{\Delta x}\left(\Phi\left(\hat{\hat{\mathbf{w}}}_{\bar{\ell}, \bar{k}+1 / 2}^n\right)-\Phi\left(\hat{\hat{\mathbf{w}}}_{\bar{\ell}, \bar{k}-1 / 2}^n\right)\right)
+$$
+$$
+\Phi\left(\hat{\hat{\mathbf{w}}}_{\bar{\ell}, \bar{k}-1 / 2}\right):=V \sum_{\alpha=\underline{\alpha}}^{\bar{\alpha}} \phi_\alpha \hat{\hat{\mathbf{w}}}_{\bar{\ell}, \bar{k}+\alpha}
+$$
+
+::::
+
+
 ## Theoretical results on the global error
 
 :::{.callout-important icon=false title="Theorem 2"}
@@ -243,8 +295,31 @@ $$
 
 {{< include python_sections/anim_sin_bis.qmd >}}
 
+# A dual ImEx/Splitting strategy for stiff PDEs
 
-## A dual Splitting/IMEX strategy for stiff PDEs {.fs-5}
+## A dual ImEx/Splitting strategy for stiff PDEs {.fs-4}
+
+:::{.row .fs-5}
+::::{.col-7 .align-self-center}
+- A strategy has been designed (PhD M. Duarte) relying on time-adaptive operator splitting with dynamically adapted mesh (multiresolution) and error control:
+  - optimal computational cost and parallelization properties (large splitting time steps) 
+- We aim at resolving stiff PDEs with samurai and ponio libraries with the same computation favorable properties:
+  - local implicitation of the source term
+  - explicit diffusion integration without von Neumann stability limit (ROCK)
+  - high-order in space and time integration of convection, including shocks
+  - strong acceleration through adaptation in space and time
+- Stumbling block: what to do when reaction and diffusion coupled at smallest time scale (complex chem. - ignition)
+::::
+
+::::{.col .align-self-center}
+<div>
+<video data-autoplay loop="true" src="videos/ignition_Re1000.mov" />
+</div>
+![](figures/splitting_time_steps.jpg)
+::::
+:::
+
+## An ImEx strategy for stiff reaction-diffusion {.fs-5}
 
 :::{.row .fs-6 }
 
@@ -292,3 +367,12 @@ $\epsilon = 1e-3$, $\underline{\ell} = 2$, $\bar{\ell} = 10$
 
 ::::
 :::
+
+## Conclusion {.fs-4}
+
+::::{.align-self-center}
+- ImEx strategy implemented in ponio - coupled to samurai 
+  - Implicit on source term / explicit for diffusion without von Neumann stability limit (ROCK)
+- Extension to convection on the way - required fine error analysis
+  - high-order in space and time integration of convection, including shocks (OSMP)
+::::
