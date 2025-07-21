@@ -380,3 +380,15 @@ $\epsilon = 1e-3$, $\underline{\ell} = 2$, $\bar{\ell} = 10$
 - Extension to convection on the way - required fine error analysis
   - high-order in space and time integration of convection, including shocks (OSMP)
 ::::
+
+<div style="position: absolute; top: 50%; transform: translate(0, 10%); text-align: center;">
+
+:::{.row}
+::::{.col-6 .align-self-center}
+![](figures/logo.png)
+::::
+::::{.col .align-self-center}
+<h4>samurai</h4>
+::::
+:::
+</div>
